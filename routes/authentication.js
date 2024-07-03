@@ -2,9 +2,14 @@ const express = require('express');
 const Users = require('../models/Users');
 const router = express.Router();
 const { validationResult, body } = require('express-validator');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
+const JWT_SECRET = 'somjeetsrim@ni';
+
+// Create a User using POST: /api/auth/createuser. No Login Required
 router.post(
-  '/',
+  '/createuser',
   [
     // name must not be empty
     body('name', 'Name cannot be empty').notEmpty(),
@@ -21,24 +26,99 @@ router.post(
       .isLength({ min: 5 })
       .withMessage('Password must be atleast of 5 characters'),
   ],
-  (request, response) => {
+  async (request, response) => {
     // Finds the validation errors in this request and wraps them in an object with handy functions
     const errors = validationResult(request);
     if (!errors.isEmpty()) {
       return response.status(400).json({ errors: errors.array() });
     }
-    Users.create({
-      name: request.body.name,
-      email: request.body.email,
-      password: request.body.password,
-    })
-      .then((user) => response.json(user))
-      .catch((error) =>
-        response.json({
-          error: 'Please enter an unique value for email',
-          message: error.message,
-        })
-      );
+
+    try {
+      // Check if the email exists in the database
+      let user = await Users.findOne({ email: request.body.email });
+      if (user) {
+        return response.status(400).json({
+          error:
+            'User with this email already exists. Please enter an unique email.',
+        });
+      }
+
+      // Implement bcrypt package to generate the salt and hashing for the password to store it in DB
+      /* Both the bcrypt.genSalt and bcrypt.hash returns a promise, we need to use await as a must*/
+      const salt = await bcrypt.genSalt(10);
+      const securePassword = await bcrypt.hash(request.body.password, salt);
+
+      // If email doesn't exists or unique, then the below code will run
+      user = await Users.create({
+        name: request.body.name,
+        email: request.body.email,
+        password: securePassword,
+      });
+
+      /* Implement the JWT Token functionality after user has been created, we will send the authToken as a response to the user. */
+      data = {
+        userID: { id: user.id },
+      };
+      const authToken = jwt.sign(data, JWT_SECRET);
+
+      // Instead of sharing the user information, we will send the authToken as an response
+      response.json({ authToken });
+      //   response.json(user);
+    } catch (error) {
+      return response.status(400).send({ error: error.message });
+    }
+  }
+);
+
+// Login a user with Post: /api/auth/login. No Login Required
+router.post(
+  '/login',
+  [
+    // email must be an email and not empty
+    body('email')
+      .notEmpty()
+      .withMessage('Email cannot be empty')
+      .isEmail()
+      .withMessage('Please enter a valid email'),
+    // password must be at least 5 chars long and not empty
+    body('password')
+      .notEmpty()
+      .withMessage('Password cannot be empty')
+      .isLength({ min: 5 })
+      .withMessage('Password must be atleast of 5 characters'),
+  ],
+  async (request, response) => {
+    // Finds the validation errors in this request and wraps them in an object with handy functions
+    const errors = validationResult(request);
+    if (!errors.isEmpty()) {
+      return response.status(400).json({ errors: errors.array() });
+    }
+
+    const { email, password } = request.body;
+    try {
+      let user = await Users.findOne({ email });
+      if (!user) {
+        return response
+          .status(400)
+          .json({ error: 'Please try to login with the correct credentials' });
+      }
+
+      // Use of await is mandatory before, otherwise it will allow the user with any password
+      const passwordCompare = await bcrypt.compare(password, user.password);
+      if (!passwordCompare) {
+        return response
+          .status(400)
+          .json({ error: 'Please try to login with the correct credentials' });
+      }
+
+      data = {
+        userID: { id: user.id },
+      };
+      const authToken = jwt.sign(data, JWT_SECRET);
+      response.json({ authToken });
+    } catch (error) {
+      return response.status(400).send({ error: error.message });
+    }
   }
 );
 
