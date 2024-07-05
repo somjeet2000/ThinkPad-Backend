@@ -50,4 +50,64 @@ router.post(
   }
 );
 
+// ROUTE 3: Update the existing note using PUT: "api/notes/updatenote/:id". Login required.
+router.put('/updatenote/:id', fetchuser, async (request, response) => {
+  try {
+    // Destructuring and get the title, description and tag from request body
+    let { title, description, tag } = request.body;
+    let updateNote = {};
+
+    // If title, description, tag is available in the body insert it to updateNote object
+    if (title) {
+      updateNote.title = title;
+    }
+    if (description) {
+      updateNote.description = description;
+    }
+    if (tag) {
+      updateNote.tag = tag;
+    }
+
+    // Find if the note is available in the database
+    let note = await Notes.findById(request.params.id);
+    if (!note) {
+      return response.status(404).send('Not Found in Database');
+    }
+    // Verify if the note is for the same particular user who is requesting to update
+    if (note.user.toString() !== request.user.id) {
+      return response.status(401).send('Not Authorized');
+    }
+    // Once verification done, it will update the note with the updateNote object details.
+    note = await Notes.findByIdAndUpdate(
+      request.params.id,
+      { $set: updateNote },
+      { new: true }
+    );
+    response.json(note);
+  } catch (error) {
+    return response.status(400).send({ error: error.message });
+  }
+});
+
+// ROUTE 4: Delete the existing note using DELETE: "api/notes/deletenote/:id". Login required.
+router.delete('/deletenode/:id', fetchuser, async (request, response) => {
+  try {
+    //Find if the note is available in Database
+    let note = await Notes.findById(request.params.id);
+    if (!note) {
+      return response.status(401).send('Not Found');
+    }
+
+    // Verify if the note is for the same particular user who is requesting to delete
+    if (note.user.toString() !== request.user.id) {
+      return response.status(401).send('Not Authorized');
+    }
+    // If everything is ok, delete the note
+    note = await Notes.findByIdAndDelete(request.params.id);
+    response.json({ Success: 'Note has been deleted.', note: note });
+  } catch (error) {
+    return response.status(401).send({ error: error.message });
+  }
+});
+
 module.exports = router;
