@@ -23,7 +23,14 @@ router.post(
   [
     // Validation for Title and Description cannot be empty
     body('title').notEmpty().withMessage('Title cannot be empty'),
-    body('description').notEmpty().withMessage('Description cannot be empty'),
+    body('description')
+      .notEmpty()
+      .withMessage('Description cannot be empty')
+      .isLength({ min: 5 })
+      .withMessage('Description should be atleast 5 characters'),
+    body('tag')
+      .customSanitizer((value) => (value === '' ? 'Default' : value))
+      .trim(),
   ],
   async (request, response) => {
     // Finds the validation errors in this request and wraps them in an object with handy functions
@@ -66,6 +73,8 @@ router.put('/updatenote/:id', fetchuser, async (request, response) => {
     }
     if (tag) {
       updateNote.tag = tag;
+    } else {
+      updateNote.tag = 'Default';
     }
 
     // Find if the note is available in the database
