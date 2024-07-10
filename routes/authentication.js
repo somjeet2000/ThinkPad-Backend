@@ -35,10 +35,12 @@ router.post(
     }
 
     try {
+      let success = false;
       // Check if the email exists in the database
       let user = await Users.findOne({ email: request.body.email });
       if (user) {
         return response.status(400).json({
+          success,
           error:
             'User with this email already exists. Please enter an unique email.',
         });
@@ -61,9 +63,9 @@ router.post(
         userID: { id: user.id },
       };
       const authToken = jwt.sign(data, JWT_SECRET);
-
+      success = true;
       // Instead of sharing the user information, we will send the authToken as an response
-      response.json({ authToken });
+      response.json({ success, authToken });
       //   response.json(user);
     } catch (error) {
       return response.status(400).send({ error: error.message });
@@ -97,26 +99,30 @@ router.post(
 
     const { email, password } = request.body;
     try {
+      let success = false;
       let user = await Users.findOne({ email });
       if (!user) {
-        return response
-          .status(400)
-          .json({ error: 'Please try to login with the correct credentials' });
+        return response.status(400).json({
+          success,
+          error: 'Please try to login with the correct credentials',
+        });
       }
 
       // Use of await is mandatory below, otherwise it will allow the user with any password
       const passwordCompare = await bcrypt.compare(password, user.password);
       if (!passwordCompare) {
-        return response
-          .status(400)
-          .json({ error: 'Please try to login with the correct credentials' });
+        return response.status(400).json({
+          success,
+          error: 'Please try to login with the correct credentials',
+        });
       }
 
       data = {
         userID: { id: user.id },
       };
       const authToken = jwt.sign(data, JWT_SECRET);
-      response.json({ authToken });
+      success = true;
+      response.json({ success, authToken });
     } catch (error) {
       return response.status(400).send({ error: error.message });
     }

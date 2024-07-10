@@ -21,7 +21,7 @@ router.post(
   '/addnote',
   fetchuser,
   [
-    // Validation for Title and Description cannot be empty
+    // Validation for Title and Description cannot be empty and Description should be min 5 characters.
     body('title').notEmpty().withMessage('Title cannot be empty'),
     body('description')
       .notEmpty()
@@ -58,45 +58,66 @@ router.post(
 );
 
 // ROUTE 3: Update the existing note using PUT: "api/notes/updatenote/:id". Login required.
-router.put('/updatenote/:id', fetchuser, async (request, response) => {
-  try {
-    // Destructuring and get the title, description and tag from request body
-    let { title, description, tag } = request.body;
-    let updateNote = {};
+router.put(
+  '/updatenote/:id',
+  fetchuser,
+  [
+    // Validation for Title and Description cannot be empty and Description should be min 5 characters.
+    body('title').notEmpty().withMessage('Title cannot be empty'),
+    body('description')
+      .notEmpty()
+      .withMessage('Description cannot be empty')
+      .isLength({ min: 5 })
+      .withMessage('Description should be atleast 5 characters'),
+    body('tag')
+      .customSanitizer((value) => (value === '' ? 'Default' : value))
+      .trim(),
+  ],
+  async (request, response) => {
+    // Finds the validation errors in this request and wraps them in an object with handy functions
+    const errors = validationResult(request);
+    if (!errors.isEmpty()) {
+      return response.status(400).json({ errors: errors.array() });
+    }
+    try {
+      // Destructuring and get the title, description and tag from request body
+      let { title, description, tag } = request.body;
+      let updateNote = {};
 
-    // If title, description, tag is available in the body insert it to updateNote object
-    if (title) {
-      updateNote.title = title;
-    }
-    if (description) {
-      updateNote.description = description;
-    }
-    if (tag) {
-      updateNote.tag = tag;
-    } else {
-      updateNote.tag = 'Default';
-    }
+      // If title, description, tag is available in the body insert it to updateNote object
+      if (title) {
+        updateNote.title = title;
+      }
+      if (description) {
+        updateNote.description = description;
+      }
+      if (tag) {
+        updateNote.tag = tag;
+      } else {
+        updateNote.tag = 'Default';
+      }
 
-    // Find if the note is available in the database
-    let note = await Notes.findById(request.params.id);
-    if (!note) {
-      return response.status(404).send('Not Found in Database');
+      // Find if the note is available in the database
+      let note = await Notes.findById(request.params.id);
+      if (!note) {
+        return response.status(404).send('Not Found in Database');
+      }
+      // Verify if the note is for the same particular user who is requesting to update
+      if (note.user.toString() !== request.user.id) {
+        return response.status(401).send('Not Authorized');
+      }
+      // Once verification done, it will update the note with the updateNote object details.
+      note = await Notes.findByIdAndUpdate(
+        request.params.id,
+        { $set: updateNote },
+        { new: true }
+      );
+      response.json(note);
+    } catch (error) {
+      return response.status(400).send({ error: error.message });
     }
-    // Verify if the note is for the same particular user who is requesting to update
-    if (note.user.toString() !== request.user.id) {
-      return response.status(401).send('Not Authorized');
-    }
-    // Once verification done, it will update the note with the updateNote object details.
-    note = await Notes.findByIdAndUpdate(
-      request.params.id,
-      { $set: updateNote },
-      { new: true }
-    );
-    response.json(note);
-  } catch (error) {
-    return response.status(400).send({ error: error.message });
   }
-});
+);
 
 // ROUTE 4: Delete the existing note using DELETE: "api/notes/deletenote/:id". Login required.
 router.delete('/deletenode/:id', fetchuser, async (request, response) => {
