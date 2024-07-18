@@ -6,7 +6,7 @@ require('dotenv').config();
 connectToMongo();
 
 const app = express();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 4000;
 
 // Middleware to use request.send
 // This will allow to send the file in the JSON format
