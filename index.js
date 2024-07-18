@@ -1,11 +1,12 @@
 const connectToMongo = require('./database');
 const express = require('express');
 var cors = require('cors');
+require('dotenv').config();
 
 connectToMongo();
 
 const app = express();
-const port = 5000;
+const port = process.env.PORT || 5000;
 
 // Middleware to use request.send
 // This will allow to send the file in the JSON format
