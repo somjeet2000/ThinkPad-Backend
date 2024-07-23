@@ -2,7 +2,7 @@ const express = require('express');
 const Users = require('../models/Users');
 const router = express.Router();
 const { validationResult, body } = require('express-validator');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const fetchuser = require('../middlewares/fetchuser');
 
@@ -26,6 +26,9 @@ router.post(
       .withMessage('Password cannot be empty')
       .isLength({ min: 5 })
       .withMessage('Password must be atleast of 5 characters'),
+    // Implement for the functionality of security question and password
+    body('securityQuestion', 'Security Question cannot be empty').notEmpty(),
+    body('securityAnswer', 'Security Answer cannot be empty').notEmpty(),
   ],
   async (request, response) => {
     // Finds the validation errors in this request and wraps them in an object with handy functions
@@ -50,12 +53,18 @@ router.post(
       /* Both the bcrypt.genSalt and bcrypt.hash returns a promise, we need to use await as a must*/
       const salt = await bcrypt.genSalt(10);
       const securePassword = await bcrypt.hash(request.body.password, salt);
+      const secureSecurityAnswer = await bcrypt.hash(
+        request.body.securityAnswer,
+        salt
+      );
 
       // If email doesn't exists or unique, then the below code will run
       user = await Users.create({
         name: request.body.name,
         email: request.body.email,
         password: securePassword,
+        securityQuestion: request.body.securityQuestion,
+        securityAnswer: secureSecurityAnswer,
       });
 
       /* Implement the JWT Token functionality after user has been created, we will send the authToken as a response to the user. */

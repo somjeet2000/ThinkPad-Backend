@@ -16,6 +16,7 @@ app.use(express.json());
 app.use('/api/auth', require('./routes/authentication'));
 app.use('/api/notes', require('./routes/notes'));
 app.use('/api/feedback', require('./routes/feedback'));
+app.use('/api/forgotpassword', require('./routes/forgotpassword'));
 
 //Health Check
 app.get('/health', (req, res) => {
