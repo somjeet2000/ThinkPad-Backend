@@ -81,8 +81,8 @@ router.put(
     body('newPassword')
       .notEmpty()
       .withMessage('Password cannot be empty')
-      .isLength({ min: 5 })
-      .withMessage('Password must be atleast of 5 characters'),
+      .isLength({ min: 8 })
+      .withMessage('Password must be atleast of 8 characters'),
   ],
   async (req, res) => {
     // Finds the validation errors in this request and wraps them in an object with handy functions

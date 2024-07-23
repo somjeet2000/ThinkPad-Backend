@@ -5,8 +5,8 @@ const { validationResult, body } = require('express-validator');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const fetchuser = require('../middlewares/fetchuser');
-
-const JWT_SECRET = 'somjeetsrim@ni';
+require('dotenv').config();
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // ROUTE 1: Create a User using POST: /api/auth/createuser. No Login Required
 router.post(
@@ -24,8 +24,8 @@ router.post(
     body('password')
       .notEmpty()
       .withMessage('Password cannot be empty')
-      .isLength({ min: 5 })
-      .withMessage('Password must be atleast of 5 characters'),
+      .isLength({ min: 8 })
+      .withMessage('Password must be atleast of 8 characters'),
     // Implement for the functionality of security question and password
     body('securityQuestion', 'Security Question cannot be empty').notEmpty(),
     body('securityAnswer', 'Security Answer cannot be empty').notEmpty(),
@@ -96,8 +96,8 @@ router.post(
     body('password')
       .notEmpty()
       .withMessage('Password cannot be empty')
-      .isLength({ min: 5 })
-      .withMessage('Password must be atleast of 5 characters'),
+      .isLength({ min: 8 })
+      .withMessage('Password must be atleast of 8 characters'),
   ],
   async (request, response) => {
     // Finds the validation errors in this request and wraps them in an object with handy functions
