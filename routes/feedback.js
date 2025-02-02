@@ -1,6 +1,7 @@
 const express = require('express');
 const nodemailer = require('nodemailer');
 const router = express.Router();
+require('dotenv').config();
 
 // Route to handle form submission
 router.post('/submitFeedback', (req, res) => {
