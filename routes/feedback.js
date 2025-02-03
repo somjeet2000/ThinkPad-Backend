@@ -14,7 +14,7 @@ router.post('/submitFeedback', (req, res) => {
       service: 'gmail',
       auth: {
         user: 'somjeetsrimani2000@gmail.com',
-        pass: GMAIL_AUTH,
+        pass: `${GMAIL_AUTH}`,
       },
     });
 
