@@ -18,6 +18,11 @@ app.use('/api/notes', require('./routes/notes'));
 app.use('/api/feedback', require('./routes/feedback'));
 app.use('/api/forgotpassword', require('./routes/forgotpassword'));
 
+// API check
+app.get('/', (req, res) => {
+  res.status(200).json({message: 'API is running 👍'});
+})
+
 //Health Check
 app.get('/health', (req, res) => {
   res.status(200).json({ message: 'Everything is good here 👀' });

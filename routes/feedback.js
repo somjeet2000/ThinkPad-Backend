@@ -1,6 +1,8 @@
 const express = require('express');
 const nodemailer = require('nodemailer');
 const router = express.Router();
+require('dotenv').config();
+const GMAIL_AUTH = process.env.GMAIL_AUTH;
 
 // Route to handle form submission
 router.post('/submitFeedback', (req, res) => {
@@ -12,7 +14,7 @@ router.post('/submitFeedback', (req, res) => {
       service: 'gmail',
       auth: {
         user: 'somjeetsrimani2000@gmail.com',
-        pass: 'qfxb rmax dswk xjru',
+        pass: `${GMAIL_AUTH}`,
       },
     });
 
