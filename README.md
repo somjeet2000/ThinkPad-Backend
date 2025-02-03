@@ -19,7 +19,7 @@ ThinkPad-Backend is a Node.js-based backend application that provides API servic
 ### Steps
 1. Clone the repository:
    ```sh
-   git clone <repository-url>
+   git clone https://github.com/somjeet2000/ThinkPad-Backend.git
    cd ThinkPad-Backend
    ```
 2. Install dependencies:
