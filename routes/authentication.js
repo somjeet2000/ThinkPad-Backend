@@ -149,4 +149,6 @@ router.post('/getuser', fetchuser, async (request, response) => {
   }
 });
 
+// ROUTE 4: Delete user data using DELETE: /api/auth/deleteuser. Login required.
+
 module.exports = router;
