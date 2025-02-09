@@ -1,0 +1,31 @@
+/*
+Requirements:
+    Branch Specific:- 
+        main branch needs to be deployed in Development environment. main -> Development
+        Jenkinsfile should be updated in the only in main branch.   Jenkinsfile -> main
+        Release branches will be deployed into Production environment.  1.0.0.25.02 -> Production
+
+    Stages:-
+        1. Clean workspace
+        2. Code Checkout
+        3. Static Code Analysis by Sonarqube
+        4. SonarQube Quality Gate
+        5. Docker Image Build
+        6. Push to DockerHub
+        7. Deploy to Render Service
+        8. Post Stages
+
+    Future Scopes:-
+        1. If any error in the SonarQube Code Analysis, the proper report should be sent to an email.
+        2. Post deployment, the confirmation will be send through an email.
+*/
+
+pipeline {
+    agent any
+
+    // Mention the environment variables
+    environment {}
+
+    // Stages in the pipeline to build
+    stages {}
+}
