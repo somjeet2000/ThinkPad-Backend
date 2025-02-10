@@ -142,7 +142,14 @@ router.post(
 router.post('/getuser', fetchuser, async (request, response) => {
   try {
     const userID = request.user.id;
-    const user = await Users.findById(userID).select('-password');
+    const user = await Users.findById(userID).select(
+      '-password -securityQuestion -securityAnswer'
+    );
+
+    if (!user) {
+      return response.status(401).json({ message: 'User does not exist' });
+    }
+
     response.json(user);
   } catch (error) {
     return response.status(400).send({ error: error.message });
@@ -155,12 +162,16 @@ router.delete('/deleteuser', fetchuser, async (request, response) => {
     // Check if the user is available in the database
     let user = await Users.findById(request.user.id);
     if (!user) {
-      return response.status(402).send('User Not Found in Database');
+      return response.status(403).send('User Not Found in Database');
     }
 
     // If everything is ok, delete the user
+    await Users.findByIdAndDelete(request.user.id);
+    return response.status(200).json({ message: 'User Deleted Successfully' });
   } catch (error) {
-    return response.status(400).send({ error: error.message });
+    return response
+      .status(500)
+      .send({ message: 'Internal Server Error', error: error.message });
   }
 });
 
