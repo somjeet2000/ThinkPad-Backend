@@ -150,5 +150,18 @@ router.post('/getuser', fetchuser, async (request, response) => {
 });
 
 // ROUTE 4: Delete user data using DELETE: /api/auth/deleteuser. Login required.
+router.delete('/deleteuser', fetchuser, async (request, response) => {
+  try {
+    // Check if the user is available in the database
+    let user = await Users.findById(request.user.id);
+    if (!user) {
+      return response.status(402).send('User Not Found in Database');
+    }
+
+    // If everything is ok, delete the user
+  } catch (error) {
+    return response.status(400).send({ error: error.message });
+  }
+});
 
 module.exports = router;
