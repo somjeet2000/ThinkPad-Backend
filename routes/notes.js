@@ -140,4 +140,30 @@ router.delete('/deletenode/:id', fetchuser, async (request, response) => {
   }
 });
 
+// ROUTE 5: Create API route for search notes by tag using GET: 'api/notes/search'. Login Required.
+router.get('/search', fetchuser, async (request, response) => {
+  try {
+    const { tag } = request.query;
+    if (!tag) {
+      return response.status(400).json({ error: 'Tag is required' });
+    }
+
+    // Use Indexed serach (Case-insensitive)
+    const notes = await Notes.find({
+      user: request.user.id,
+      tag: { $regex: new RegExp(`^${tag}$`, 'i') },
+    });
+
+    if (notes.length === 0) {
+      return response.json({ message: 'No notes found for this tag' });
+    } else {
+      return response.json(notes);
+    }
+  } catch (error) {
+    return response
+      .status(500)
+      .send({ message: 'Internal Server Error', error: error.message });
+  }
+});
+
 module.exports = router;

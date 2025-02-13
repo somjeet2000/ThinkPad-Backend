@@ -16,7 +16,7 @@ const notesSchema = new Schema({
   },
   tag: {
     type: String,
-    default: 'General',
+    index: true, // Add an index for faster search
   },
   date: {
     type: Date,
