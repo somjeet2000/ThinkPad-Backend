@@ -151,14 +151,10 @@ router.get('/search', fetchuser, async (request, response) => {
     // Use Indexed serach (Case-insensitive)
     const notes = await Notes.find({
       user: request.user.id,
-      tag: { $regex: new RegExp(`^${tag}$`, 'i') },
+      tag: { $regex: tag, $options: 'i' },
     });
 
-    if (notes.length === 0) {
-      return response.json({ message: 'No notes found for this tag' });
-    } else {
-      return response.json(notes);
-    }
+    response.json(notes.length > 0 ? notes : { message: 'No notes found' });
   } catch (error) {
     return response
       .status(500)
