@@ -13,7 +13,7 @@ Requirements:
         5. Docker Image Build
         6. Push to DockerHub
         7. Deploy to Render Service
-        8. Post Stages
+        8. Email Notification sent as post stages
 
     Future Scopes:-
         1. If any error in the SonarQube Code Analysis, the proper report should be sent to an email.
