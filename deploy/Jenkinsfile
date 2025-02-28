@@ -23,9 +23,100 @@ Requirements:
 pipeline {
     agent any
 
+    // Parameters
+    parameters {
+        choice(name: 'Environment', choice: ['Development', 'Production'], description: 'Select deployment environment')
+        choice(name: 'Branch', choice: ['main', 'development', 'Others'], description: 'Select branch')
+        string(name: 'Others', defaultValue: '', description: 'Specify branch name if Others is selected')
+    }
+
     // Mention the environment variables
-    environment {}
+    environment {
+        // Docker Hub
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
+        DOCKERHUB_DEV = 'somjeetsrimani/thinkpad-development'
+        DOCKERHUB_PROD = 'somjeetsrimani/thinkpad-production'
+
+        // Render Credentails
+        RENDER_SERVICE_ID_DEV = credentials('thinkpad-service-id-development')
+        RENDER_SERVICE_ID_PROD = credentials('thinkpad-service-id-production')
+        RENDER_API_KEY_DEV = credentials('thinkpad-development-api-key')
+        RENDER_API_KEY_PROD = credentials('thinkpad-production-api-key')
+    }
 
     // Stages in the pipeline to build
-    stages {}
+    stages {
+
+        // Stage 1: Clean workspace
+        stage('Clean Workspace') {
+            steps {
+                cleanWs()
+            }
+        }
+
+        // Stage 2: Code Checkout
+        stage('Code Checkout') {
+            steps {
+                script {
+                    // Check if Branch is selected as Others, and Others is empty
+                    if(params.Branch == 'Others' && !params.Others?.trim()) {
+                        error "Branch Name is required when selected Others as Branch"
+                    }
+
+                    // Determine the Branch to select
+                    def branchToSelect = params.Branch == 'Others' ? params.Others.trim() : params.Branch
+
+                    checkout scmGit(
+                        branches: [[name: "*/${branchToSelect}"]], 
+                        extensions: [], 
+                        userRemoteConfigs: [[url: 'https://github.com/somjeet2000/ThinkPad-Backend.git']])
+                }
+            }
+        }
+
+        // Stage 3: Static Code Analysis
+
+        // Stage 4: Sonarqube code quality
+
+        // Stage 5: Docker Image Build
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    def dockerRepo = params.Environment == 'Development' ? env.DOCKERHUB_DEV : env.DOCKERHUB_PROD
+                    sh "docker build -t ${dockerRepo}:${IMAGE_TAG} -f deploy/Dockerfile ."
+                }
+            }
+        }
+
+        // Stage 6: Push to Docker Hub
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    def dockerRepo = params.Environment == 'Development' ? env.DOCKERHUB_DEV : env.DOCKERHUB_PROD
+                    withCredentials([string(credentialsId: 'dockerhub-credentials', variable: 'DOCKERHUB_PASSWORD')]) {
+                        sh 'echo $DOCKERHUB_PASSWORD | docker login -u somjeetsrimani --password-stdin'
+                        sh "docker push ${dockerRepo}:${IMAGE_TAG}"
+                    }
+                }
+            }
+        }
+
+        // Stage 7: Deploy to Render Service
+        stage('Deploy to Render Service') {
+            steps {
+                script {
+                    def renderServiceID = params.Environment == 'Development' ? env.RENDER_SERVICE_ID_DEV : env.RENDER_SERVICE_ID_PROD
+                    def renderAPIKey = params.Environment == 'Development' ? env.RENDER_API_KEY_DEV : env.RENDER_API_KEY_PROD
+                    def renderAPIEndpoint = "https://api.render.com/deploy/${renderServiceID}"
+
+                    sh """
+                    curl -X POST ${renderAPIEndpoint} \
+                        -H 'Authorization: Bearer ${renderAPIKey}' \
+                        -H 'Content-Type: application/json' \
+                        -d '{"clearCache": false}'
+                    """
+                }
+            }
+        }
+    }
 }
