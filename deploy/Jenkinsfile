@@ -25,8 +25,8 @@ pipeline {
 
     // Parameters
     parameters {
-        choice(name: 'Environment', choice: ['Development', 'Production'], description: 'Select deployment environment')
-        choice(name: 'Branch', choice: ['main', 'development', 'Others'], description: 'Select branch')
+        choice(name: 'Environment', choices: ['Development', 'Production'], description: 'Select deployment environment')
+        choice(name: 'Branch', choices: ['main', 'development', 'Others'], description: 'Select branch')
         string(name: 'Others', defaultValue: '', description: 'Specify branch name if Others is selected')
     }
 
