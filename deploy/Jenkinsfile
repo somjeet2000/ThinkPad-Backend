@@ -21,12 +21,7 @@ Requirements:
 */
 
 pipeline {
-    agent {
-        docker {
-            image 'docker:latest'
-            args '--privileged -v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
+    agent any
 
     // Parameters
     parameters {
@@ -39,7 +34,7 @@ pipeline {
     environment {
         // Host Docker Connection
         DOCKER_HOST = 'tcp://host.docker.internal:2375'
-        
+
         // Docker Hub
         IMAGE_TAG = "${env.BUILD_NUMBER}"
         DOCKERHUB_DEV = 'somjeetsrimani/thinkpad-development'
