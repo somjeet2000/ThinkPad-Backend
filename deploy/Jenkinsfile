@@ -36,7 +36,7 @@ pipeline {
         DOCKER_HOST = 'tcp://host.docker.internal:2375'
 
         // Docker Hub
-        IMAGE_TAG = "${env.BUILD_NUMBER}"
+        IMAGE_TAG = "latest"
         DOCKERHUB_DEV = 'somjeetsrimani/thinkpad-development'
         DOCKERHUB_PROD = 'somjeetsrimani/thinkpad-production'
 
