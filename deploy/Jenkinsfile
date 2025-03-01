@@ -96,7 +96,7 @@ pipeline {
             steps {
                 script {
                     def dockerRepo = params.Environment == 'Development' ? env.DOCKERHUB_DEV : env.DOCKERHUB_PROD
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'DockerHub_Password', usernameVariable: 'DockerHub_UserName')]) { {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'DockerHub_Password', usernameVariable: 'DockerHub_UserName')]) {
                         sh 'echo $DockerHub_Password | docker login -u $DockerHub_UserName --password-stdin'
                         sh "docker push ${dockerRepo}:${IMAGE_TAG}"
                     }
